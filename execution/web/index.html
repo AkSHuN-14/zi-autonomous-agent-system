@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Agent Execution Environment (AEE)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        textarea::-webkit-scrollbar { width: 6px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #4f46e5; border-radius: 3px; }
+        textarea::-webkit-scrollbar-track { background-color: #e5e7eb; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-indigo-700 mb-2">ZI Agent Execution Environment (AEE)</h1>
+            <p class="text-gray-600">Simulates the external system that parses the agent's <strong>Mandatory YAML Schema</strong> and executes tool calls.</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-white p-6 rounded-xl shadow-2xl border border-indigo-200 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-indigo-600">Input: Agent's Structured Action Protocol (YAML)</h2>
+            <textarea id="yamlInput" rows="12" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono transition duration-150 ease-in-out"
+                placeholder="Paste the agent's YAML output here (Section 4 Schema)...">
+---
+Plan_ID: 1
+Thought: The user requires a summary of the latest trends in autonomous agent architecture, as defined in the provided document. I will use the web_search_engine to find external validation and current data, limiting results to 3 for efficiency.
+Action_Type: TOOL_USE
+Tool_Name: web_search_engine
+Tool_Arguments:
+  query: 'autonomous agent architecture ReAct LATS'
+  max_results: 3
+Stop_Condition: FALSE
+---</textarea>
+
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
+                <button onclick="runAction()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    Run Action (Simulate Execution)
+                </button>
+                <button onclick="clearAll()" class="sm:w-1/4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-gray-400 focus:ring-opacity-50">Clear</button>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="bg-white p-6 rounded-xl shadow-2xl border border-green-200">
+            <h2 class="text-xl font-semibold mb-4 text-green-600">Output: Observation and Status</h2>
+            <div id="statusMessage" class="mb-4 p-3 rounded-lg border text-sm hidden"></div>
+
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Parsed Action Object</h3>
+            <pre id="parsedOutput" class="bg-gray-100 p-3 rounded-lg text-xs sm:text-sm font-mono overflow-auto border border-gray-300 mb-4 h-32"></pre>
+
+            <h3 class="text-lg font-medium text-gray-700 mb-2">Simulated Tool Observation (Result)</h3>
+            <pre id="observationOutput" class="bg-green-50 p-3 rounded-lg text-sm font-mono overflow-auto border border-green-300 h-40"></pre>
+        </div>
+
+        <!-- Agent Loop Visualization -->
+        <div class="bg-white p-6 rounded-xl shadow-2xl border border-purple-200 mt-8">
+            <h2 class="text-xl font-semibold mb-4 text-purple-600">Agent Loop Visualization</h2>
+            <div class="grid grid-cols-4 gap-4">
+                <div id="thoughtStep" class="p-4 rounded-lg bg-gray-100 border-2 border-gray-300">
+                    <h3 class="font-semibold text-gray-700">Thought</h3>
+                    <p class="text-sm text-gray-600">Waiting...</p>
+                </div>
+                <div id="actionStep" class="p-4 rounded-lg bg-gray-100 border-2 border-gray-300">
+                    <h3 class="font-semibold text-gray-700">Action</h3>
+                    <p class="text-sm text-gray-600">Waiting...</p>
+                </div>
+                <div id="observationStep" class="p-4 rounded-lg bg-gray-100 border-2 border-gray-300">
+                    <h3 class="font-semibold text-gray-700">Observation</h3>
+                    <p class="text-sm text-gray-600">Waiting...</p>
+                </div>
+                <div id="reflectionStep" class="p-4 rounded-lg bg-gray-100 border-2 border-gray-300">
+                    <h3 class="font-semibold text-gray-700">Reflection</h3>
+                    <p class="text-sm text-gray-600">Waiting...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Application State & Constants ---
+        const statusEl = document.getElementById('statusMessage');
+        const parsedEl = document.getElementById('parsedOutput');
+        const observationEl = document.getElementById('observationOutput');
+        const yamlInputEl = document.getElementById('yamlInput');
+        
+        // --- Custom Simple YAML Parser ---
+        function parseSimpleYAML(yamlString) {
+            const lines = yamlString.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('---'));
+            const data = { Tool_Arguments: {} };
+            let currentKey = null;
+
+            for (const line of lines) {
+                if (line.includes(':')) {
+                    const [key, ...valueParts] = line.split(':');
+                    const value = valueParts.join(':').trim().replace(/['"]/g, '');
+
+                    if (key.trim() === 'Plan_ID') {
+                        data.Plan_ID = parseInt(value);
+                        currentKey = null;
+                    } else if (key.trim() === 'Thought') {
+                        currentKey = 'Thought';
+                        data.Thought = value; 
+                    } else if (key.trim() === 'Action_Type') {
+                        data.Action_Type = value;
+                        currentKey = null;
+                    } else if (key.trim() === 'Tool_Name') {
+                        data.Tool_Name = value;
+                        currentKey = null;
+                    } else if (key.trim() === 'Tool_Arguments') {
+                        currentKey = 'Tool_Arguments';
+                    } else if (key.trim() === 'Stop_Condition') {
+                        data.Stop_Condition = value.toUpperCase() === 'TRUE';
+                        currentKey = null;
+                    } 
+                    else if (currentKey === 'Tool_Arguments') {
+                        const argKey = key.trim().replace('-', '').trim();
+                        let argValue = value;
+                        if (!isNaN(argValue) && argValue !== '') {
+                            argValue = parseFloat(argValue);
+                        } else if (argValue.toLowerCase() === 'true' || argValue.toLowerCase() === 'false') {
+                             argValue = argValue.toLowerCase() === 'true';
+                        }
+                        data.Tool_Arguments[argKey] = argValue;
+                    }
+                    else if (currentKey === 'Thought') {
+                        data.Thought += '\n' + line;
+                    }
+                }
+            }
+
+            data.Thought = data.Thought ? data.Thought.trim() : "";
+            
+            if (!data.Action_Type || data.Plan_ID === undefined) {
+                throw new Error("YAML structure invalid: Missing required fields (Action_Type or Plan_ID).");
+            }
+            return data;
+        }
+
+        // --- Tool Implementation (Simulated) ---
+        const TOOL_IMPLEMENTATIONS = {
+            web_search_engine: ({ query, max_results }) => {
+                if (!query) return "ERROR: Query argument is missing.";
+                if (max_results > 5) return "ERROR: max_results violates guardrail (must be 5 or less).";
+                
+                const results = [
+                    `1. Link: The ReAct Framework: Principles of CoT and Action (Max et al.)`,
+                    `2. Article: LATS Architecture for Iterative Self-Correction and Reflection`,
+                    `3. Blog: YAML vs. JSON for LLM Parsing: An Enterprise Perspective`,
+                ].slice(0, max_results);
+
+                return `Observation: Search completed for "${query}". Found ${max_results} results (simulated):\n${results.join('\n')}`;
+            },
+
+            db_query_sql: ({ sql_command }) => {
+                if (sql_command.toLowerCase().includes('delete') || sql_command.toLowerCase().includes('insert')) {
+                    return "ERROR: CRITICAL GUARDRAIL VIOLATION. Read-only SQL command required. Execution halted.";
+                }
+                const mockData = JSON.stringify({
+                    count: 12,
+                    data: [{id: 101, status: 'Active', region: 'NA'}]
+                }, null, 2);
+                return `Observation: SQL Query Executed: '${sql_command}'. Returned ${mockData.length} characters of data:\n${mockData}`;
+            },
+            
+            file_io_write: ({ path, content }) => {
+                return `WARNING: The agent requested to write a file to path: ${path}. This action is considered high-risk and requires human-in-the-loop confirmation. Agent must set Stop_Condition: TRUE and wait for human input to proceed. Observation: Awaiting confirmation.`;
+            }
+        };
+
+        // --- Agent Loop Visualization ---
+        function updateLoopStep(stepName, status, message) {
+            const stepEl = document.getElementById(stepName + 'Step');
+            stepEl.querySelector('p').textContent = message;
+            
+            stepEl.classList.remove('bg-gray-100', 'border-gray-300', 'bg-green-100', 'border-green-500', 'bg-red-100', 'border-red-500');
+            
+            if (status === 'active') {
+                stepEl.classList.add('bg-green-100', 'border-green-500');
+            } else if (status === 'error') {
+                stepEl.classList.add('bg-red-100', 'border-red-500');
+            } else {
+                stepEl.classList.add('bg-gray-100', 'border-gray-300');
+            }
+        }
+
+        // --- Main Execution Logic ---
+        function updateStatus(message, type = 'info') {
+            statusEl.classList.remove('hidden', 'border-red-300', 'bg-red-50', 'text-red-700', 'border-yellow-300', 'bg-yellow-50', 'text-yellow-700', 'border-blue-300', 'bg-blue-50', 'text-blue-700', 'border-green-300', 'bg-green-50', 'text-green-700');
+            
+            if (type === 'error') {
+                statusEl.classList.add('border-red-300', 'bg-red-50', 'text-red-700');
+            } else if (type === 'warning') {
+                statusEl.classList.add('border-yellow-300', 'bg-yellow-50', 'text-yellow-700');
+            } else if (type === 'success') {
+                statusEl.classList.add('border-green-300', 'bg-green-50', 'text-green-700');
+            } else { 
+                statusEl.classList.add('border-blue-300', 'bg-blue-50', 'text-blue-700');
+            }
+            
+            statusEl.textContent = message;
+            statusEl.classList.remove('hidden');
+        }
+
+        function runAction() {
+            const yamlString = yamlInputEl.value;
+            let actionData;
+
+            // Reset loop visualization
+            ['thought', 'action', 'observation', 'reflection'].forEach(step => {
+                updateLoopStep(step, 'waiting', 'Waiting...');
+            });
+
+            // 1. Attempt to Parse the Structured Output
+            try {
+                actionData = parseSimpleYAML(yamlString);
+                parsedEl.textContent = JSON.stringify(actionData, null, 2);
+                updateStatus(`Successfully parsed Action Protocol (Plan ID: ${actionData.Plan_ID}). Proceeding to Action Type: ${actionData.Action_Type}.`, 'success');
+                updateLoopStep('thought', 'active', actionData.Thought.substring(0, 50) + '...');
+            } catch (error) {
+                parsedEl.textContent = 'Parsing Failed.';
+                observationEl.textContent = 'Parsing Error: ' + error.message;
+                updateStatus('ERROR: Failed to parse YAML. The agent produced malformed output, breaking the Action Loop. Fix the schema.', 'error');
+                updateLoopStep('thought', 'error', 'Invalid YAML structure');
+                return;
+            }
+
+            // 2. Validate Stop Condition (Human-in-the-Loop Guardrail)
+            if (actionData.Stop_Condition === true) {
+                 updateStatus(`SUCCESS: Action Loop Halted. Stop_Condition was set to TRUE. The agent is awaiting human review (Thought: ${actionData.Thought.substring(0, 50)}...).`, 'warning');
+                 observationEl.textContent = "Observation: Agent executed Stop_Condition: TRUE. No external tool was run. Awaiting human input to resume.";
+                 updateLoopStep('action', 'error', 'Halted by Stop_Condition');
+                 return;
+            }
+            
+            // 3. Execute Based on Action_Type
+            let observationResult = '';
+            
+            if (actionData.Action_Type === 'TOOL_USE') {
+                const toolName = actionData.Tool_Name;
+                const toolArgs = actionData.Tool_Arguments;
+
+                updateLoopStep('action', 'active', `Tool: ${toolName}`);
+
+                if (!TOOL_IMPLEMENTATIONS[toolName]) {
+                    observationResult = `ERROR: Tool_Name '${toolName}' is not defined in the available tool specifications.`;
+                    updateStatus('ERROR: Tool not found. Agent used an invalid tool name.', 'error');
+                    updateLoopStep('observation', 'error', 'Tool not found');
+                } else {
+                    try {
+                        observationResult = TOOL_IMPLEMENTATIONS[toolName](toolArgs);
+                        updateStatus(`Action: TOOL_USE executed successfully for '${toolName}'. Generating Observation for the agent's next Reflection step.`, 'info');
+                        updateLoopStep('observation', 'active', 'Tool executed successfully');
+                        updateLoopStep('reflection', 'active', 'Ready for reflection');
+                    } catch (e) {
+                        observationResult = `CRITICAL EXECUTION ERROR: Tool '${toolName}' failed during runtime with error: ${e.message}`;
+                        updateStatus('CRITICAL ERROR: Tool runtime failure. Check arguments and tool implementation.', 'error');
+                        updateLoopStep('observation', 'error', 'Execution failed');
+                    }
+                }
+            } else if (actionData.Action_Type === 'CLARIFY_REQUEST') {
+                observationResult = `Observation: Agent executed CLARIFY_REQUEST. Next step is for the human (or human proxy) to provide the necessary clarification based on the Thought block: ${actionData.Thought}`;
+                updateStatus('Action: CLARIFY_REQUEST executed. Agent is awaiting clarification. Resources conserved.', 'warning');
+                updateLoopStep('action', 'active', 'Clarification requested');
+                updateLoopStep('observation', 'error', 'Awaiting user input');
+
+            } else if (actionData.Action_Type === 'FINAL_ANSWER') {
+                observationResult = `Observation: Final Answer Proposed. Plan_ID ${actionData.Plan_ID}. The final output is: ${actionData.Thought}`;
+                updateStatus('SUCCESS: Agent concluded the task and proposed a FINAL_ANSWER. Loop finished.', 'success');
+                updateLoopStep('action', 'active', 'Final answer proposed');
+                updateLoopStep('observation', 'active', 'Task completed');
+                updateLoopStep('reflection', 'active', 'Loop complete');
+
+            } else {
+                observationResult = `ERROR: Action_Type '${actionData.Action_Type}' is invalid. Must be one of TOOL_USE, CLARIFY_REQUEST, or FINAL_ANSWER.`;
+                updateStatus('ERROR: Invalid Action_Type used.', 'error');
+                updateLoopStep('action', 'error', 'Invalid action type');
+            }
+
+            // 4. Return Observation
+            observationEl.textContent = observationResult;
+        }
+
+        function clearAll() {
+            yamlInputEl.value = '';
+            parsedEl.textContent = '';
+            observationEl.textContent = '';
+            statusEl.classList.add('hidden');
+            ['thought', 'action', 'observation', 'reflection'].forEach(step => {
+                updateLoopStep(step, 'waiting', 'Waiting...');
+            });
+        }
+
+        // Set initial content and run for demonstration
+        window.onload = runAction;
+
+    </script>
+</body>
+</html>

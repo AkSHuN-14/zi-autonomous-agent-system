@@ -1,0 +1,62 @@
+# ZI Agent System Configuration
+
+# Agent Settings
+agent:
+  user_id: "TA'K$HUN"
+  max_iterations: 50
+  error_threshold: 3
+  default_timeout: 30
+
+# Memory Settings
+memory:
+  max_memory_entries: 1000
+  max_context_tokens: 2000
+  importance_threshold: 0.3
+  enable_persistence: false
+  persistence_path: "data/memory.json"
+
+# Security Settings
+security:
+  enable_pii_detection: true
+  enable_injection_detection: true
+  log_violations: true
+  violation_log_path: "data/violations.json"
+
+# Tool Settings
+tools:
+  enable_example_tools: true
+  max_tool_execution_time: 10
+  tool_timeout_retries: 2
+
+# Execution Settings
+execution:
+  enable_loop_visualization: true
+  log_all_actions: true
+  action_log_path: "data/actions.json"
+
+# Personalized Criteria (TA'K$HUN specific)
+personalized:
+  trusted_entities:
+    - "TA'K"
+    - "TA'K$HUN"
+    - "TAK$SHUN"
+    - "Ta'K"
+    - "Ta'K$HuN"
+  allowed_high_risk_actions:
+    - "code_generation"
+    - "system_modification"
+    - "financial_analysis"
+  require_confirmation_for:
+    - "irreversible_financial_changes"
+    - "irreversible_system_changes"
+    - "destructive_operations"
+  auto_approve_for:
+    - "code_generation"
+    - "data_analysis"
+    - "content_creation"
+
+# Development Settings
+development:
+  debug_mode: true
+  verbose_logging: true
+  test_mode: false

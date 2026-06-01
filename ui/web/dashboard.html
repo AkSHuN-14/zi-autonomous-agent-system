@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Agent Dashboard - Growth & Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function Dashboard() {
+            const [activeTab, setActiveTab] = useState('chat');
+            const [agentStatus, setAgentStatus] = useState('idle');
+            const [messages, setMessages] = useState([]);
+            const [inputMessage, setInputMessage] = useState('');
+            const [loopState, setLoopState] = useState('waiting');
+            const [generatedContent, setGeneratedContent] = useState([]);
+            const [memoryStats, setMemoryStats] = useState({ total_entries: 0, total_tokens: 0 });
+            const [toolExecution, setToolExecution] = useState([]);
+            const [videoProduction, setVideoProduction] = useState({
+                topic: '',
+                style: 'neutral',
+                status: 'idle',
+                videos: [],
+                progress: 0
+            });
+            const [analytics, setAnalytics] = useState({
+                totalShares: 1247,
+                viralCoefficient: 1.8,
+                topPerformingContent: [
+                    { title: 'AI Automation Guide', views: 45000, shares: 890 },
+                    { title: 'Business AI Tips', views: 32000, shares: 650 }
+                ],
+                growthMetrics: {
+                    weekly: '+23%',
+                    monthly: '+156%',
+                    userRetention: '78%'
+                },
+                platformBreakdown: {
+                    twitter: 45,
+                    linkedin: 30,
+                    facebook: 15,
+                    reddit: 10
+                }
+            });
+            const messagesEndRef = useRef(null);
+
+            const scrollToBottom = () => {
+                if (messagesEndRef.current) {
+                    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+                }
+            };
+
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages]);
+
+            const handleSendMessage = () => {
+                if (!inputMessage.trim()) return;
+
+                // Add user message
+                const userMessage = { role: 'user', content: inputMessage, timestamp: new Date().toISOString() };
+                setMessages([...messages, userMessage]);
+                setInputMessage('');
+
+                // Simulate agent processing
+                setAgentStatus('processing');
+                setLoopState('thought');
+
+                // Simulate agent response
+                setTimeout(() => {
+                    const agentResponse = { 
+                        role: 'assistant', 
+                        content: `Processing your request: "${inputMessage}". I'm using the ReAct loop to analyze this task.`,
+                        timestamp: new Date().toISOString(),
+                        loopState: 'action'
+                    };
+                    setMessages(prev => [...prev, agentResponse]);
+                    setLoopState('action');
+
+                    // Simulate tool execution
+                    setTimeout(() => {
+                        const toolResponse = {
+                            role: 'system',
+                            content: 'Tool executed: content_generation. Result: Content generated successfully.',
+                            timestamp: new Date().toISOString(),
+                            loopState: 'observation'
+                        };
+                        setMessages(prev => [...prev, toolResponse]);
+                        setLoopState('observation');
+
+                        // Final response
+                        setTimeout(() => {
+                            const finalResponse = {
+                                role: 'assistant',
+                                content: 'Task completed successfully. Generated content using UCC commerce themes with AIDA optimization.',
+                                timestamp: new Date().toISOString(),
+                                loopState: 'reflection'
+                            };
+                            setMessages(prev => [...prev, finalResponse]);
+                            setAgentStatus('idle');
+                            setLoopState('waiting');
+                        }, 1000);
+                    }, 1500);
+                }, 1000);
+            };
+
+            const generateContent = () => {
+                const platforms = ['FetLife', 'Chaturbate', 'Fansly'];
+                const tones = ['explicit', 'suggestive'];
+                const uccThemes = ['secured_transaction', 'contract_domination', 'collateral_control'];
+
+                const newContent = {
+                    platform: platforms[Math.floor(Math.random() * platforms.length)],
+                    tone: tones[Math.floor(Math.random() * tones.length)],
+                    ucc_theme: uccThemes[Math.floor(Math.random() * uccThemes.length)],
+                    content: "Sample generated content with UCC kinks and AIDA optimization...",
+                    timestamp: new Date().toISOString()
+                };
+
+                setGeneratedContent([newContent, ...generatedContent]);
+            };
+
+            const renderLoopVisualization = () => {
+                const states = ['thought', 'action', 'observation', 'reflection'];
+                const colors = {
+                    waiting: 'bg-gray-200',
+                    thought: 'bg-blue-500',
+                    action: 'bg-green-500',
+                    observation: 'bg-yellow-500',
+                    reflection: 'bg-purple-500'
+                };
+
+                return (
+                    <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+                        {states.map(state => (
+                            <div key={state} className="flex flex-col items-center">
+                                <div className={`w-4 h-4 rounded-full ${colors[loopState]} ${loopState === state ? 'pulse-dot' : ''}`}></div>
+                                <span className="text-xs mt-1 capitalize text-gray-600">{state}</span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            };
+
+            const handleVideoGeneration = () => {
+                if (!videoProduction.topic.trim()) return;
+
+                setVideoProduction(prev => ({
+                    ...prev,
+                    status: 'processing',
+                    progress: 0
+                }));
+
+                // Simulate video generation progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(progressInterval);
+
+                        const newVideo = {
+                            id: Date.now(),
+                            topic: videoProduction.topic,
+                            style: videoProduction.style,
+                            status: 'completed',
+                            timestamp: new Date().toISOString(),
+                            metadata: {
+                                title: `🔥 ${videoProduction.topic} EXPOSED`,
+                                description: `AI-generated video about ${videoProduction.topic}`,
+                                tags: ['ai', 'autonomous', videoProduction.topic]
+                            }
+                        };
+
+                        setVideoProduction(prev => ({
+                            ...prev,
+                            status: 'idle',
+                            progress: 0,
+                            videos: [newVideo, ...prev.videos]
+                        }));
+                    } else {
+                        setVideoProduction(prev => ({
+                            ...prev,
+                            progress: Math.min(progress, 99)
+                        }));
+                    }
+                }, 500);
+            };
+
+            const renderAnalytics = () => (
+                <div className="space-y-6">
+                    {/* Key Metrics */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg p-6 text-white">
+                            <h3 className="text-sm font-medium opacity-80">Total Shares</h3>
+                            <p className="text-3xl font-bold mt-2">{analytics.totalShares.toLocaleString()}</p>
+                            <p className="text-xs mt-1 opacity-70">+23% this week</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-lg p-6 text-white">
+                            <h3 className="text-sm font-medium opacity-80">Viral Coefficient</h3>
+                            <p className="text-3xl font-bold mt-2">{analytics.viralCoefficient.toFixed(1)}</p>
+                            <p className="text-xs mt-1 opacity-70">k > 1 = viral growth</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-6 text-white">
+                            <h3 className="text-sm font-medium opacity-80">Monthly Growth</h3>
+                            <p className="text-3xl font-bold mt-2">{analytics.growthMetrics.monthly}</p>
+                            <p className="text-xs mt-1 opacity-70">User acquisition</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg p-6 text-white">
+                            <h3 className="text-sm font-medium opacity-80">User Retention</h3>
+                            <p className="text-3xl font-bold mt-2">{analytics.growthMetrics.userRetention}</p>
+                            <p className="text-xs mt-1 opacity-70">30-day retention</p>
+                        </div>
+                    </div>
+
+                    {/* Platform Breakdown */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Platform Performance</h3>
+                        <div className="space-y-4">
+                            {Object.entries(analytics.platformBreakdown).map(([platform, percentage]) => (
+                                <div key={platform} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                                            <span className="text-indigo-600 font-bold text-sm">{platform[0].toUpperCase()}</span>
+                                        </div>
+                                        <span className="capitalize text-gray-700">{platform}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-48 bg-gray-200 rounded-full h-2">
+                                            <div 
+                                                className="bg-indigo-600 h-2 rounded-full" 
+                                                style={{ width: `${percentage}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-600 w-12">{percentage}%</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Top Performing Content */}
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Top Performing Content</h3>
+                        <div className="space-y-3">
+                            {analytics.topPerformingContent.map((content, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <h4 className="font-medium text-gray-800">{content.title}</h4>
+                                        <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                                            <span>👁️ {content.views.toLocaleString()} views</span>
+                                            <span>📤 {content.shares} shares</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-green-600 font-semibold">
+                                            {((content.shares / content.views) * 100).toFixed(1)}% share rate
+                                        </div>
+                                        <div className="text-xs text-gray-500">Engagement rate</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Growth Insights */}
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+                        <h4 className="font-semibold text-purple-800 mb-3">📈 Growth Insights</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-lg p-4">
+                                <h5 className="font-medium text-gray-700 mb-2">🎯 Top Opportunity</h5>
+                                <p className="text-sm text-gray-600">LinkedIn shows 30% higher engagement rates. Consider focusing professional content there.</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-4">
+                                <h5 className="font-medium text-gray-700 mb-2">🚀 Viral Content Pattern</h5>
+                                <p className="text-sm text-gray-600">Content with "AI automation" in title performs 45% better. Use this in future content.</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-4">
+                                <h5 className="font-medium text-gray-700 mb-2">⏰ Optimal Posting Time</h5>
+                                <p className="text-sm text-gray-600">Tuesday 10 AM EST generates highest engagement across all platforms.</p>
+                            </div>
+                            <div className="bg-white rounded-lg p-4">
+                                <h5 className="font-medium text-gray-700 mb-2">👥 Audience Growth</h5>
+                                <p className="text-sm text-gray-600">Referral traffic is growing 67% faster than organic. Leverage sharing features.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderVideoProduction = () => (
+                <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">AI Video Production Pipeline</h3>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Video Topic</label>
+                                <input
+                                    type="text"
+                                    value={videoProduction.topic}
+                                    onChange={(e) => setVideoProduction(prev => ({ ...prev, topic: e.target.value }))}
+                                    placeholder="Enter topic for AI video generation..."
+                                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Visual Style</label>
+                                <select
+                                    value={videoProduction.style}
+                                    onChange={(e) => setVideoProduction(prev => ({ ...prev, style: e.target.value }))}
+                                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="neutral">Neutral</option>
+                                    <option value="intense">Intense</option>
+                                    <option value="calm">Calm</option>
+                                    <option value="corporate">Corporate</option>
+                                </select>
+                            </div>
+
+                            <button
+                                onClick={handleVideoGeneration}
+                                disabled={videoProduction.status === 'processing' || !videoProduction.topic.trim()}
+                                className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                            >
+                                {videoProduction.status === 'processing' ? 'Generating Video...' : 'Generate AI Video'}
+                            </button>
+
+                            {videoProduction.status === 'processing' && (
+                                <div className="mt-4">
+                                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                                        <span>Processing Pipeline</span>
+                                        <span>{Math.round(videoProduction.progress)}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div 
+                                            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                            style={{ width: `${videoProduction.progress}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Generated Videos</h3>
+                        
+                        {videoProduction.videos.length === 0 ? (
+                            <p className="text-gray-500 text-center py-8">No videos generated yet</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {videoProduction.videos.map(video => (
+                                    <div key={video.id} className="border rounded-lg p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 className="font-medium text-gray-800">{video.metadata.title}</h4>
+                                                <p className="text-sm text-gray-600">{video.metadata.description}</p>
+                                            </div>
+                                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                                                {video.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2 mt-3">
+                                            {video.metadata.tags.map(tag => (
+                                                <span key={tag} className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-2">
+                                            Style: {video.style} • {new Date(video.timestamp).toLocaleString()}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 border border-purple-200">
+                        <h4 className="font-semibold text-purple-800 mb-2">🎬 Production Pipeline Features</h4>
+                        <ul className="text-sm text-purple-700 space-y-1">
+                            <li>• AI-directed visual style selection</li>
+                            <li>• Autonomous audio synthesis (ElevenLabs integration)</li>
+                            <li>• Scene-level parallel processing</li>
+                            <li>• Memory-safe rendering engine</li>
+                            <li>• Firebase logging and analytics</li>
+                            <li>• Profit-aware optimization decisions</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+
+            const renderChatInterface = () => (
+                <div className="space-y-4">
+                    <div className="bg-white rounded-lg shadow p-4 h-96 overflow-y-auto">
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`mb-4 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                                <div className={`inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                    msg.role === 'user' 
+                                        ? 'bg-indigo-600 text-white' 
+                                        : msg.role === 'system'
+                                            ? 'bg-yellow-100 text-yellow-800'
+                                            : 'bg-gray-200 text-gray-800'
+                                }`}>
+                                    {msg.role === 'system' && <span className="text-xs font-bold">SYSTEM: </span>}
+                                    {msg.content}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">{new Date(msg.timestamp).toLocaleTimeString()}</div>
+                            </div>
+                        ))}
+                        <div ref={messagesEndRef} />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={inputMessage}
+                            onChange={(e) => setInputMessage(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                            placeholder="Enter your task or message..."
+                            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={agentStatus === 'processing'}
+                            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                        >
+                            {agentStatus === 'processing' ? 'Processing...' : 'Send'}
+                        </button>
+                    </div>
+
+                    {renderLoopVisualization()}
+                </div>
+            );
+
+            const renderContentGenerator = () => (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                        <button
+                            onClick={generateContent}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                        >
+                            Generate Content
+                        </button>
+                        <select className="px-4 py-2 border rounded-lg">
+                            <option>FetLife</option>
+                            <option>Chaturbate</option>
+                            <option>Fansly</option>
+                        </select>
+                        <select className="px-4 py-2 border rounded-lg">
+                            <option>Explicit</option>
+                            <option>Suggestive</option>
+                            <option>Professional</option>
+                        </select>
+                    </div>
+
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {generatedContent.map((content, idx) => (
+                            <div key={idx} className="bg-white rounded-lg shadow p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex gap-2">
+                                        <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">{content.platform}</span>
+                                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">{content.tone}</span>
+                                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">{content.ucc_theme}</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{new Date(content.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                                <p className="text-gray-700">{content.content}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const renderMemoryMonitor = () => (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg shadow p-4">
+                            <h3 className="text-lg font-semibold text-gray-700">Memory Entries</h3>
+                            <p className="text-3xl font-bold text-indigo-600">{memoryStats.total_entries}</p>
+                        </div>
+                        <div className="bg-white rounded-lg shadow p-4">
+                            <h3 className="text-lg font-semibold text-gray-700">Tokens Used</h3>
+                            <p className="text-3xl font-bold text-green-600">{memoryStats.total_tokens.toLocaleString()}</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-3">Memory Distribution</h3>
+                        <div className="space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Observations</span>
+                                <div className="w-48 bg-gray-200 rounded-full h-2">
+                                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '40%' }}></div>
+                                </div>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Actions</span>
+                                <div className="w-48 bg-gray-200 rounded-full h-2">
+                                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '30%' }}></div>
+                                </div>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Reflections</span>
+                                <div className="w-48 bg-gray-200 rounded-full h-2">
+                                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '20%' }}></div>
+                                </div>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Constraints</span>
+                                <div className="w-48 bg-gray-200 rounded-full h-2">
+                                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '10%' }}></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderSettings = () => (
+                <div className="space-y-4">
+                    <div className="bg-white rounded-lg shadow p-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-3">Agent Configuration</h3>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Max Iterations</label>
+                                <input type="number" defaultValue={50} className="w-full px-3 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Error Threshold</label>
+                                <input type="number" defaultValue={3} className="w-full px-3 py-2 border rounded-lg" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Max Context Tokens</label>
+                                <input type="number" defaultValue={2000} className="w-full px-3 py-2 border rounded-lg" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow p-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-3">Security Settings</h3>
+                        <div className="space-y-2">
+                            <label className="flex items-center">
+                                <input type="checkbox" defaultChecked className="mr-2" />
+                                <span className="text-gray-700">Enable PII Detection</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input type="checkbox" defaultChecked className="mr-2" />
+                                <span className="text-gray-700">Enable Injection Detection</span>
+                            </label>
+                            <label className="flex items-center">
+                                <input type="checkbox" defaultChecked className="mr-2" />
+                                <span className="text-gray-700">Log Security Violations</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen bg-gray-100">
+                    {/* Header */}
+                    <header className="gradient-bg text-white p-6 shadow-lg">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold">ZI Autonomous Agent Dashboard</h1>
+                                <p className="text-indigo-200">Advanced Agent Interaction Interface</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-3 h-3 rounded-full ${agentStatus === 'idle' ? 'bg-green-400' : 'bg-yellow-400 pulse-dot'}`}></div>
+                                    <span className="capitalize">{agentStatus}</span>
+                                </div>
+                                <button className="px-4 py-2 bg-white/20 rounded-lg hover:bg-white/30">
+                                    Reset Agent
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto p-6">
+                        {/* Tab Navigation */}
+                        <div className="flex gap-2 mb-6 flex-wrap">
+                            {['chat', 'video', 'analytics', 'content', 'memory', 'settings'].map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`px-4 py-2 rounded-lg capitalize ${
+                                        activeTab === tab
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-white text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Content */}
+                        <div className="glass-card rounded-lg shadow-lg p-6">
+                            {activeTab === 'chat' && renderChatInterface()}
+                            {activeTab === 'video' && renderVideoProduction()}
+                            {activeTab === 'analytics' && renderAnalytics()}
+                            {activeTab === 'content' && renderContentGenerator()}
+                            {activeTab === 'memory' && renderMemoryMonitor()}
+                            {activeTab === 'settings' && renderSettings()}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

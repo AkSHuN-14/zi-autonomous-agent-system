@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZI Autonomous Agent System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="gradient-bg text-white py-12">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h1 class="text-4xl font-bold mb-4">ZI Autonomous Agent System</h1>
+            <p class="text-xl text-indigo-200">Advanced Agent Architecture with ReAct Loop & Structured Outputs</p>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-12">
+        <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Choose Your Interface</h2>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Dashboard Card -->
+            <a href="dashboard.html" class="bg-white rounded-xl shadow-lg p-8 card-hover border-2 border-transparent hover:border-indigo-500">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Dashboard</h3>
+                    <p class="text-gray-600 mb-4">Full-featured interface with chat, content generation, memory monitoring, and settings</p>
+                    <ul class="text-sm text-gray-500 text-left space-y-2">
+                        <li>• Interactive chat with agent</li>
+                        <li>• FVCGen content generation</li>
+                        <li>• Real-time memory monitoring</li>
+                        <li>• Agent configuration settings</li>
+                    </ul>
+                </div>
+            </a>
+
+            <!-- AEE Card -->
+            <a href="aee.html" class="bg-white rounded-xl shadow-lg p-8 card-hover border-2 border-transparent hover:border-purple-500">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Agent Execution Environment</h3>
+                    <p class="text-gray-600 mb-4">YAML schema parser and tool execution simulator for the ReAct loop</p>
+                    <ul class="text-sm text-gray-500 text-left space-y-2">
+                        <li>• YAML schema validation</li>
+                        <li>• Tool execution simulation</li>
+                        <li>• Agent loop visualization</li>
+                        <li>• Debug and testing interface</li>
+                    </ul>
+                </div>
+            </a>
+        </div>
+
+        <div class="mt-12 text-center">
+            <div class="bg-indigo-50 rounded-lg p-6 max-w-2xl mx-auto">
+                <h4 class="font-semibold text-indigo-800 mb-2">System Status: Production Ready</h4>
+                <p class="text-sm text-indigo-700">Complete ReAct-based agent architecture with YAML schema, self-correction protocols, and TA'K$HUN personalization</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-6 text-gray-500 text-sm">
+        <p>ZI Autonomous Agent System • RellyVent Media Group • Powered by Firebase Hosting</p>
+    </footer>
+</body>
+</html>
